@@ -145,7 +145,7 @@ def main():
 
     st.subheader("📹 Videó Mozgásfeldolgozás (kísérleti)")
     st.markdown("Ez a funkció előkészíti a videók mozgásanalízisét asztaliteniszhez.")
-    st.code(\"\"\"import cv2
+   st.code('''import cv2
 cap = cv2.VideoCapture('meccs.mp4')
 while cap.isOpened():
     ret, frame = cap.read()
@@ -156,7 +156,8 @@ while cap.isOpened():
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 cap.release()
-cv2.destroyAllWindows()\"\"\", language='python')
+cv2.destroyAllWindows()
+''', language='python')
 
 if __name__ == "__main__":
     main()
