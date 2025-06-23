@@ -4,5 +4,4 @@ scikit-learn
 matplotlib
 seaborn
 streamlit
-tensorflow-cpu
 opencv-python-headless
