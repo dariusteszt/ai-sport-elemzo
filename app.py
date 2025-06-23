@@ -1,5 +1,5 @@
 # AI Sport Elemző Program (Asztalitenisz)
-# V4: Deep learning, odds-elemzés, játékosprofil, videómozgás-előkészítés + TTSwing integráció
+# V4: Klasszikus ML, odds-elemzés, játékosprofil, videómozgás-előkészítés + TTSwing integráció
 
 import pandas as pd
 import numpy as np
@@ -10,9 +10,6 @@ import streamlit as st
 import seaborn as sns
 import matplotlib.pyplot as plt
 import os
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
 import cv2
 
 # ------------------------------
@@ -65,24 +62,7 @@ def train_rf_model(df):
     return model, acc
 
 # ------------------------------
-# 4. Deep Learning modell
-# ------------------------------
-
-def train_dl_model(df):
-    X = df[["hazai_elozmeny", "vendeg_elozmeny", "hazai_gyozelmek", "vendeg_gyozelmek", "odds_hazai", "odds_vendeg"]].values
-    y = df["gyoztes"].values
-    model = Sequential([
-        Dense(64, activation='relu', input_shape=(6,)),
-        Dense(64, activation='relu'),
-        Dense(1, activation='sigmoid')
-    ])
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-    model.fit(X, y, epochs=50, batch_size=16, verbose=0)
-    loss, acc = model.evaluate(X, y, verbose=0)
-    return model, acc
-
-# ------------------------------
-# 5. Predikciós függvények
+# 4. Predikciós függvények
 # ------------------------------
 
 def predict_match_rf(model, features):
@@ -91,13 +71,8 @@ def predict_match_rf(model, features):
     prob = model.predict_proba(input_data)
     return pred[0], prob[0][1], prob[0][0]
 
-def predict_match_dl(model, features):
-    input_data = np.array([features])
-    prob = model.predict(input_data)[0][0]
-    return int(prob > 0.5), prob, 1 - prob
-
 # ------------------------------
-# 6. Streamlit Alkalmazás
+# 5. Streamlit Alkalmazás
 # ------------------------------
 
 def main():
@@ -118,9 +93,7 @@ def main():
         st.subheader("🧠 Modell Tanítása")
         with st.spinner("Tanítás folyamatban..."):
             rf_model, rf_acc = train_rf_model(df)
-            dl_model, dl_acc = train_dl_model(df)
         st.success(f"Random Forest pontosság: {rf_acc*100:.2f}%")
-        st.success(f"Deep Learning pontosság: {dl_acc*100:.2f}%")
 
         st.subheader("🔮 Meccs Predikció")
         hazai_forma = st.slider("Hazai forma (utóbbi győzelmek)", 0, 10, 5)
@@ -134,10 +107,7 @@ def main():
 
         if st.button("Eredmény előrejelzése"):
             pred_rf, prob_h_rf, prob_v_rf = predict_match_rf(rf_model, features)
-            pred_dl, prob_h_dl, prob_v_dl = predict_match_dl(dl_model, features)
-
             st.info(f"🧠 RF győztes: {'Hazai' if pred_rf == 1 else 'Vendég'} ({prob_h_rf*100:.1f}% vs {prob_v_rf*100:.1f}%)")
-            st.info(f"🤖 DL győztes: {'Hazai' if pred_dl == 1 else 'Vendég'} ({prob_h_dl*100:.1f}% vs {prob_v_dl*100:.1f}%)")
 
     if swing_df is not None:
         st.subheader("🏓 TTSwing Ütéselemzés")
@@ -145,7 +115,7 @@ def main():
 
     st.subheader("📹 Videó Mozgásfeldolgozás (kísérleti)")
     st.markdown("Ez a funkció előkészíti a videók mozgásanalízisét asztaliteniszhez.")
-    st.code(\"\"\"import cv2
+    st.code('''import cv2
 cap = cv2.VideoCapture('meccs.mp4')
 while cap.isOpened():
     ret, frame = cap.read()
@@ -156,7 +126,7 @@ while cap.isOpened():
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 cap.release()
-cv2.destroyAllWindows()\"\"\", language='python')
+cv2.destroyAllWindows()''', language='python')
 
 if __name__ == "__main__":
     main()
